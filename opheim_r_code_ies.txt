@@ -1,0 +1,75 @@
+setwd("C:\\Users\\paulo\\Documents\\RA and Fellowship Applications\\Data_Tests\\IES_RA_Test")
+
+dataset <- read.csv("C:\\Users\\paulo\\Documents\\RA and Fellowship Applications\\Data_Tests\\IES_RA_Test\\CARD.csv")
+
+head(dataset)
+
+# install.packages("ivreg", dependencies = TRUE)
+library("ivreg")
+
+sapply(dataset,function(x) sum(is.na(x)))
+
+# Problem 2.a
+reg1 <- lm(dataset$lwage ~ dataset$educ)
+
+summary(reg1)
+
+sink("reg1.txt")
+print(summary(reg1))
+sink()
+
+# This regression finds that worker education is positively related to the log of a worker's wage.
+# If education were strictly exogenous, we could conclude that more education causes a higher wage
+# (but since it is not, we can only conclude that the two are correlated with one another).
+
+
+# Problem 2.b
+reg2 <- lm(lwage~ educ + exper + expersq + black + smsa + south + smsa66 + reg661 + reg662 + reg663 + reg664 +reg665 + reg666 + reg667 + reg668 + reg669,data=dataset)
+summary(reg2)
+
+sink("reg2.txt")
+print(summary(reg2))
+sink()
+
+# Even controlling for all of these additional variables, education is still
+# positively correlated with the log of a worker's wage. In fact, adding these additional covariates
+# increases the estimated value of education (from a coefficient of 0.05 before to 0.08 now).
+
+# End of Problem 2.b
+
+# Problem 2.c
+reg3 <- ivreg(lwage ~ educ + exper + expersq + black + smsa + south + smsa66 + reg661 + reg662 + reg663 + reg664 +reg665 + reg666 + reg667 + reg668 + reg669|nearc4+ exper + expersq + black + smsa + south + smsa66 + reg661 + reg662 + reg663 + reg664 +reg665 + reg666 + reg667 + reg668 + reg669, data=dataset)
+summary(reg3)
+
+sink("reg3.txt")
+print(summary(reg3))
+sink()
+
+# Using this 2SLS method gives us a much larger estimate of the value of education (a 0.14 regression coefficient instead of 0.08 in the un-instrumented equation in 2.b).
+# If we are assuming that nearc4 is a valid instrument for educational attainment, then this would provide some evidence for the idea that higher education leads to
+# higher earnings (not just that the two things are related).
+
+# End of 2.c
+
+# Problem 2.d
+first_stage_reg <- lm(educ ~ nearc4 + exper + expersq + black + smsa + south + smsa66 +  + reg661 + reg662 + reg663 + reg664 +reg665 + reg666 + reg667 + reg668 + reg669,data=dataset)
+summary(first_stage_reg)
+
+rf_reg <- lm(lwage ~ nearc4 + exper + expersq + black + smsa + south + smsa66 + reg661 + reg662 + reg663 + reg664 +reg665 + reg666 + reg667 + reg668 + reg669,data=dataset)
+summary(rf_reg)
+
+sink("first_stage_reg")
+print(summary(first_stage_reg))
+sink()
+sink("rf_reg")
+print(summary(rf_reg))
+sink()
+
+# The first-stage regression tells us that nearc4 is significantly correlated with education, which is
+# a necessary (although not sufficient) assumption for nearc4 to be used as an instrument for education.
+# Looking at the reduced form regression (which has the format of (2) except educ is replaced with nearc4),
+# we can see that nearc4 has a significant positive relationship with log of a worker's wage; if we combine this
+# with an assumption that nearc4 influences wages only through its effect on education, then we would conclude that education
+# increases wages.
+
+# End of Problem 2.d

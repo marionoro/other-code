@@ -1,0 +1,40 @@
+using Pkg
+
+# Pkg.add("Distributions")
+# Pkg.add("GLM")
+
+using Random, Distributions
+using GLM
+using DataFrames, DataFramesMeta
+using LinearAlgebra
+
+# Problem 1.a
+mu = [1; 0]
+sigma = [1 0.5; 0.5 1]
+
+multi_norm = MvNormal(mu,sigma)
+
+results = rand(multi_norm, 1000)
+
+# End of Problem 1.a
+
+# Problem 1.b
+I = ones(1000)
+y = results[2,:]
+x = results[1,:]
+
+@linq data = DataFrame(transpose(results)) |> select(x=:x1,y=:x2)
+
+fm = @formula(x ~ y)
+linearRegressor = lm(fm, data)
+
+# End of Problem 1.b
+
+# Problem 1.c
+
+# The intercept matches almost exactly with the mean for the x-variable (since y is symmetric around 0 the intercept for this
+# equation should be very similar to the mean of the marginal distribution for x). Similarly, the y coefficient matches with the 
+# covariance between x and y which also has an intuitive meaning; the covariance between the two variables is how they relate 
+# with one another, so when the equation is only a function of x on y then the coefficient for y should express this relationship.
+
+# End of Problem 1.c
